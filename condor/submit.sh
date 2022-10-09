@@ -26,6 +26,7 @@ fi
 
 if ! [ $folder ]; then
   echo '!!!! Name of the folder is missing !!!!'
+  exit
 else
   sed -i "s/FOLDER/$folder/" batchScript.sh
   echo 'Folder:' $folder >> subInfo.txt
@@ -64,3 +65,5 @@ else
 fi
 
 condor_submit condor.sub -queue $nevents
+
+rm batchScript.sh
