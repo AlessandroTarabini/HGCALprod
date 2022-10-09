@@ -1,10 +1,11 @@
 cp batchScript_template.sh batchScript.sh
 touch subInfo.txt
 
-while getopts 'p:n:u' flag; do
+while getopts 'p:n:f:u' flag; do
   case "${flag}" in
     p) particle="${OPTARG}" ;;
     n) nevents="${OPTARG}" ;;
+    f) folder="${OPTARG}" ;;
     u) pu='true' ;;
   esac
 done
@@ -22,6 +23,14 @@ else
   echo 'choices: ele - pho'
   exit
 fi
+
+if ! [ $folder ]; then
+  echo '!!!! Name of the folder is missing !!!!'
+else
+  sed -i "s/FOLDER/$folder/" batchScript.sh
+  echo 'Folder:' $folder >> subInfo.txt
+fi
+
 
 if [ $pu ]; then
   echo 'Pile-Up included'
@@ -55,4 +64,3 @@ else
 fi
 
 condor_submit condor.sub -queue $nevents
-
