@@ -1,0 +1,9 @@
+executable  = batchScript.sh
+arguments   = $(ProcId)
+universe    = vanilla
+output      = log/output.$(ProcId).out
+error       = log/error.$(ProcId).err
+log         = log/log.$(ProcId).log
+
++JobFlavour = "tomorrow"
+

@@ -1,0 +1,26 @@
+<library   file="*.cc" name="RecoNtuplesHGCalAnalysisPlugins">
+<use   name="FWCore/MessageLogger"/>
+<use   name="FWCore/Framework"/>
+<use   name="Geometry/HGCalGeometry"/>
+<use   name="DataFormats/CaloRecHit"/>
+<use   name="DataFormats/ParticleFlowReco"/>
+<use   name="DataFormats/TrackReco"/>
+<use   name="DataFormats/GeometrySurface"/>
+<use   name="Geometry/Records"/>
+<use   name="SimDataFormats/CaloAnalysis"/>
+<use   name="CommonTools/UtilAlgos"/>
+<use   name="FastSimulation/Event"/>
+<use   name="FastSimulation/CaloGeometryTools"/>
+<use   name="TrackPropagation/RungeKutta"/>
+<use   name="MagneticField/Engine"/>
+<use   name="TrackingTools/Records"/>
+
+<use   name="RecoLocalCalo/HGCalRecAlgos"/>
+
+  <flags   EDM_PLUGIN="1"/>
+</library>
+
+
+<export>
+</export>
+
