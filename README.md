@@ -16,7 +16,9 @@ scram b -j all
 To submit the production
 ------------------------------
 The working folder is ```condor```.
+
 Before starting the submission, some manual operations are needed in the ```batchScript_template.sh``` file. The storage and local folder should be modified to fit your needs and setup.
+
 ```sh submit.sh``` is the command to run to setup the production and submit condor jobs.
 ```submit.sh``` needs some arguments:
 * ```-p```: particles to generate (options: ```ele``` for electrons and ```pho``` for photons)
