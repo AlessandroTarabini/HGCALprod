@@ -1,0 +1,8 @@
+executable  = batchScript_onlystep3.sh
+arguments   = $(Item)
+universe    = vanilla
+output      = log/output.$(Item).out
+error       = log/error.$(Item).err
+log         = log/log.$(Item).log
+
++JobFlavour = "tomorrow"

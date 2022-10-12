@@ -65,5 +65,3 @@ else
 fi
 
 condor_submit condor.sub -queue $nevents
-
-rm batchScript.sh
