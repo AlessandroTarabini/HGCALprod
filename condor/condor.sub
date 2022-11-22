@@ -1,4 +1,4 @@
-executable  = batchScript_onlystep3.sh
+executable  = batchScript.sh
 arguments   = $(ProcId)
 universe    = vanilla
 output      = log/output.$(ProcId).out
@@ -6,3 +6,10 @@ error       = log/error.$(ProcId).err
 log         = log/log.$(ProcId).log
 
 +JobFlavour = "tomorrow"
+
+getenv = true
+
+T3Queue = long
+WNTag=el7
++SingularityCmd = ""
+include : /opt/exp_soft/cms/t3/t3queue |

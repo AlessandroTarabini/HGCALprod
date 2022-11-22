@@ -1,3 +1,6 @@
+voms-proxy-init --rfc --voms cms -valid 192:00
+source /opt/exp_soft/cms/t3/t3setup
+
 cp batchScript_onlystep3_template.sh batchScript_onlystep3.sh
 
 while getopts 's:f:u' flag; do
