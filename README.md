@@ -10,7 +10,9 @@ cmsrel CMSSW_12_6_0_pre2
 cd CMSSW_12_6_0_pre2/src
 cmsenv
 git clone https://github.com/AlessandroTarabini/HGCALprod.git
+mv src/RecoNtuples .
 scram b -j all
+cp -r RecoNtuples HGCALprod/.
 ```
 
 To submit a complete production
