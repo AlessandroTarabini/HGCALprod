@@ -4,6 +4,9 @@ storage=/grid_mnt/data__data.polcms/cms/tarabini/FOLDER
 local=/home/llr/cms/tarabini/CMSSW_12_6_0_pre4/src/HGCALprod
 folder=$PWD
 
+source /cvmfs/cms.cern.ch/cmsset_default.sh
+export SITECONFIG_PATH=/cvmfs/cms.cern.ch/SITECONF/T2_FR_GRIF_LLR/GRIF_LLR
+
 cd $local
 eval $(scram ru -sh)
 cd $folder

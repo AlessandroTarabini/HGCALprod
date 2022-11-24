@@ -6,7 +6,7 @@ This is the framework to produce samples for HGCALreco studies.
 To install the repo
 ------------------------------
 ```
-cmsrel CMSSW_12_6_0_pre2
+cmsrel CMSSW_12_6_0_pre4
 cd CMSSW_12_6_0_pre2/src
 cmsenv
 git clone https://github.com/AlessandroTarabini/HGCALprod.git
