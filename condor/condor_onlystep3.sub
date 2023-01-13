@@ -6,3 +6,10 @@ error       = log/error.$(Item).err
 log         = log/log.$(Item).log
 
 +JobFlavour = "tomorrow"
+
+getenv = true
+
+T3Queue = long
+WNTag=el7
++SingularityCmd = ""
+include : /opt/exp_soft/cms/t3/t3queue |
