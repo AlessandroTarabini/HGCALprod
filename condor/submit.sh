@@ -14,18 +14,22 @@ while getopts 'p:n:f:u' flag; do
 done
 
 if [ $particle == 'ele' ]; then
-  echo 'Particles: electrons'
-  echo 'Particles: electrons' >> subInfo.txt
-  sed -i "s/PARTICLE/SElectron_2to1000_cfi_GEN_SIM.py/" batchScript.sh
+	outstr="Particles: electrons"
+	sed -i "s/PARTICLE/SElectron_2to1000_cfi_GEN_SIM.py/" batchScript.sh
 elif [ $particle == 'pho' ]; then
-  echo 'Particles: photons'
-  echo 'Particles: photons' >> subInfo.txt
-  sed -i "s/PARTICLE/CloseByParticle_Photon_ERZRanges_cfi_GEN_SIM.py/" batchScript.sh
+  	outstr="Particles: photons"
+	sed -i "s/PARTICLE/CloseByParticle_Photon_ERZRanges_cfi_GEN_SIM.py/" batchScript.sh
+elif [ $particle == 'pion' ]; then
+	outstr="Particles: pions"
+	sed -i "s/PARTICLE/CloseByParticle_Photon_ERZRanges_cfi_GEN_SIM.py/" batchScript.sh
 else
   echo '!!!! unknwon particle !!!!'
-  echo 'choices: ele - pho'
+  echo 'choices: ele - pho - pion'
   exit
 fi
+echo ${outstr}
+echo ${outstr} >> subInfo.txt
+
 
 if ! [ $folder ]; then
   echo '!!!! Name of the folder is missing !!!!'
