@@ -12,6 +12,7 @@ git clone https://github.com/AlessandroTarabini/HGCALprod.git
 mv src/RecoNtuples .
 scram b -j all
 cp -r RecoNtuples HGCALprod/.
+cd HGCALprod/
 ```
 
 ## To submit a complete production
@@ -29,7 +30,7 @@ The ntuples are produced by jobs launched via HTCondor. The storage and local fo
 Example: generate 200 ntuples with electrons, PU, and store the outputs in the subfolder ```electrons```:
 
 ```shell
-sh submit.sh -p ele -n 201 -f electrons -u
+bash condor/submit.sh -p ele -n 201 -f electrons -u
 ```
 
 * _Note1:_ The first job always fails due to a zero-valued seed (not supported by Geant4). To submit N successful jobs one has to launch N+1 jobs.
