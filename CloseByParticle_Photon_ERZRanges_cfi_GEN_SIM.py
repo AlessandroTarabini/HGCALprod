@@ -35,7 +35,7 @@ process.RandomNumberGeneratorService.generator.initialSeed = cms.untracked.uint3
 
 
 process.maxEvents = cms.untracked.PSet(
-        input = cms.untracked.int32(100),
+        input = cms.untracked.int32(500),
     output = cms.optional.untracked.allowed(cms.int32,cms.PSet)
 )
 
@@ -101,21 +101,21 @@ process.GlobalTag = GlobalTag(process.GlobalTag, 'auto:phase2_realistic_T21', ''
 process.generator = cms.EDProducer("CloseByParticleGunProducer",
     AddAntiParticle = cms.bool(True),
     PGunParameters = cms.PSet(
-        ControlledByEta = cms.bool(False),
+        ControlledByEta = cms.bool(True),
         MaxEnSpread = cms.bool(False),
-        Delta = cms.double(100),
+        Delta = cms.double(0),
         EnMax = cms.double(1000.0),
         EnMin = cms.double(10.0),
         MaxEta = cms.double(2.75),
         MaxPhi = cms.double(3.14159265359),
         MinEta = cms.double(1.65),
         MinPhi = cms.double(-3.14159265359),
-        NParticles = cms.int32(2),
+        NParticles = cms.int32(1),
         Overlapping = cms.bool(False),
-        PartID = cms.vint32(22),
+        PartID = cms.vint32(211),
         Pointing = cms.bool(True),
-        RMax = cms.double(127),
-        RMin = cms.double(41),
+        # RMax = cms.double(127),
+        # RMin = cms.double(41),
         RandomShoot = cms.bool(False),
         ZMax = cms.double(321),
         ZMin = cms.double(320)

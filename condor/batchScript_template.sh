@@ -1,7 +1,7 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
-storage=/grid_mnt/data__data.polcms/cms/tarabini/FOLDER
-local=/home/llr/cms/tarabini/CMSSW_12_6_0_pre4/src/HGCALprod
+storage=/data_CMS/cms/"${USER}"/FOLDER
+local=/home/llr/cms/"${USER}"/CMSSW_12_6_0_pre4/src/HGCALprod
 folder=$PWD
 
 source /cvmfs/cms.cern.ch/cmsset_default.sh
