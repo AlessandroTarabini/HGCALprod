@@ -9,7 +9,7 @@ cmsrel CMSSW_12_6_0_pre4
 cd CMSSW_12_6_0_pre4/src
 cmsenv
 git clone https://github.com/AlessandroTarabini/HGCALprod.git
-mv src/RecoNtuples .
+mv HGCALprod/RecoNtuples .
 scram b -j all
 cp -r RecoNtuples HGCALprod/.
 cd HGCALprod/
