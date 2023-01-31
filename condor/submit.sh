@@ -1,8 +1,14 @@
+#!/usr/bin/env bash
+
 voms-proxy-init --rfc --voms cms -valid 192:00
 source /opt/exp_soft/cms/t3/t3setup
 
-cp batchScript_template.sh batchScript.sh
-touch subInfo.txt
+WORKDIR="condor"
+BATCH="${WORKDIR}/batchScript.sh"
+TXT="${WORKDIR}/subInfo.txt"
+
+cp ${WORKDIR}/batchScript_template.sh ${BATCH}
+touch ${TXT}
 
 while getopts 'p:n:f:u' flag; do
   case "${flag}" in
@@ -13,40 +19,42 @@ while getopts 'p:n:f:u' flag; do
   esac
 done
 
+LOGS="${WORKDIR}/log_${folder}"
+
 if [ $particle == 'ele' ]; then
 	outstr="Particles: electrons"
-	sed -i "s/PARTICLE/SElectron_2to1000_cfi_GEN_SIM.py/" batchScript.sh
+	sed -i "s/PARTICLE/SElectron_2to1000_cfi_GEN_SIM.py/" ${BATCH}
 elif [ $particle == 'pho' ]; then
   	outstr="Particles: photons"
-	sed -i "s/PARTICLE/CloseByParticle_Photon_ERZRanges_cfi_GEN_SIM.py/" batchScript.sh
+	sed -i "s/PARTICLE/CloseByParticle_Photon_ERZRanges_cfi_GEN_SIM.py/" ${BATCH}
 elif [ $particle == 'pion' ]; then
 	outstr="Particles: pions"
-	sed -i "s/PARTICLE/CloseByParticle_Photon_ERZRanges_cfi_GEN_SIM.py/" batchScript.sh
+	sed -i "s/PARTICLE/CloseByParticle_Photon_ERZRanges_cfi_GEN_SIM.py/" ${BATCH}
 else
   echo '!!!! unknwon particle !!!!'
   echo 'choices: ele - pho - pion'
   exit
 fi
 echo ${outstr}
-echo ${outstr} >> subInfo.txt
+echo ${outstr} >> ${TXT}
 
 
 if ! [ $folder ]; then
   echo '!!!! Name of the folder is missing !!!!'
   exit
 else
-  sed -i "s/FOLDER/$folder/" batchScript.sh
-  echo 'Folder:' $folder >> subInfo.txt
+  sed -i "s/FOLDER/$folder/" ${BATCH}
+  echo 'Folder:' $folder >> ${TXT}
 fi
 
 
 if [ $pu ]; then
   echo 'Pile-Up included'
-  echo 'Pile-Up included' >> subInfo.txt
+  echo 'Pile-Up included' >> ${TXT}
 else
   echo 'Pile-Up not included'
-  echo 'Pile-Up not included' >> subInfo.txt
-  sed -i "s/_PU//" batchScript.sh
+  echo 'Pile-Up not included' >> ${TXT}
+  sed -i "s/_PU//" ${BATCH}
 fi
 
 if ! [ $nevents ]; then
@@ -55,20 +63,20 @@ if ! [ $nevents ]; then
   exit
 else
   echo 'Number of events:' $nevents
-  echo 'Number of events:' $nevents >> subInfo.txt
+  echo 'Number of events:' $nevents >> ${TXT}
 fi
 
-if [ -d log ]; then
-  echo 'Folder log exists'
+if [ -d ${LOGS} ]; then
+  echo 'Folder $LOGS exists'
   echo 'Previous generation might be ongoing, please check'
-  echo 'To start a new generation, remove the log folder'
-  rm subInfo.txt
-  rm batchScript.sh
+  echo 'To start a new generation, remove the $LOGS folder'
+  rm ${TXT}
+  rm ${BATCH}
   exit
 else
-  mkdir log
-  mv subInfo.txt log/.
-  cp batchScript.sh log/.
+  mkdir ${LOGS}
+  mv ${TXT} ${LOGS}/.
+  cp ${BATCH} ${LOGS}/.
 fi
 
-condor_submit condor.sub -queue $nevents
+condor_submit ${WORKDIR}/condor.sub -queue $nevents
