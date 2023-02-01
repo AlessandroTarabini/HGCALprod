@@ -4,11 +4,13 @@
 PARTICLE=""
 NSAMPLES=""
 PU="0"
+DRYRUN="0"
 
 declare -a PARTICLES=("ele" "pho" "pion")
 
 ### Argument parsing
 HELP_STR="Prints this help message."
+DRYRUN_STR="(Boolean) Prints all the commands to be launched but does not launch them. Defaults to ${DRYRUN}."
 PARTICLE_STR="(String) Which particles to shoot. Defaults to '${PARTICLES}'."
 NSAMPLES_STR="(String) How many samples to produce. Each samples has a number of events specified in the particle gun python configuration file (maxEvents.input)"
 FOLDER_STR="(String) Folder to store all files."
@@ -16,8 +18,9 @@ PU_STR="(Boolean flag) If present, pile-up is included."
 
 function print_usage_submit {
     USAGE="
-        Run example: bash $(basename "$0") -t out_test --in_tag Jan2023 --user bfontana --dry-run
+        Run example: bash $(basename "$0") -p pion -n 101 -f SinglePion_0PU --dry-run
     -h / --help[ ${HELP_STR} ]
+    -d / --dry-run[ ${DRYRUN_STR} ]
     -p / --particle[ ${PARTICLE_STR} ]
     -n / --nsamples[ ${NSAMPLES_STR} ]
     -f / --folder[ ${FOLDER_STR} ]
@@ -32,6 +35,10 @@ while [[ $# -gt 0 ]]; do
 	-h|--help)
 	    print_usage_submit
 	    exit 1
+	    ;;
+	-d|--dry-run)
+	    DRYRUN="1"
+	    shift;
 	    ;;
 	-p|--particle)
 	    PARTICLE=${2}
@@ -55,6 +62,14 @@ while [[ $# -gt 0 ]]; do
 	    ;;
     esac
 done
+
+## Argument parsing: information for the user
+echo "------ Arguments --------------"
+printf "DRYRUN\t\t= ${DRYRUN}\n"
+printf "PARTICLE\t= ${PARTICLE}\n"
+printf "NSAMPLES\t= ${NSAMPLES}\n"
+printf "PU\t\t= ${PU}\n"
+echo "-------------------------------"
 
 WORKDIR="condor"
 BATCH="${WORKDIR}/batchScript.sh"
@@ -97,19 +112,16 @@ voms-proxy-init --rfc --voms cms -valid 192:00
 source /opt/exp_soft/cms/t3/t3setup
 
 if ! [ ${FOLDER} ]; then
-  echo '!!!! Name of the folder is missing !!!!'
+  echo 'ERROR: The name of the folder is missing!'
   exit
 else
   sed -i "s/FOLDER/${FOLDER}/" ${BATCH}
   echo 'Folder:' ${FOLDER} >> ${TXT}
 fi
 
-
 if [[ ${PU} -eq 1 ]]; then
-  echo 'Pile-Up included'
   echo 'Pile-Up included' >> ${TXT}
 else
-  echo 'Pile-Up not included'
   echo 'Pile-Up not included' >> ${TXT}
   sed -i "s/_PU//" ${BATCH}
 fi
@@ -119,7 +131,6 @@ if ! [ ${NSAMPLES} ]; then
   echo '+1 should be added to the number of desired events'
   exit
 else
-  echo 'Number of samples:' ${NSAMPLES}
   echo 'Number of samples:' ${NSAMPLES} >> ${TXT}
 fi
 
@@ -142,4 +153,6 @@ WNTag=el7
 include : /opt/exp_soft/cms/t3/t3queue |
 EOL
 
-condor_submit ${SUB} -queue ${NSAMPLES}
+comm="condor_submit ${SUB} -queue ${NSAMPLES}";
+[[ ${DRYRUN} -eq 1 ]] && printf "\nDry-run: ${comm}\n" || ${comm};
+
