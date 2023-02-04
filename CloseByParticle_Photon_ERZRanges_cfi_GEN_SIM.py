@@ -6,14 +6,19 @@
 import FWCore.ParameterSet.Config as cms
 
 from FWCore.ParameterSet.VarParsing import VarParsing
-FLAGS = VarParsing('gun')
+FLAGS = VarParsing('analysis')
 # add a list of strings for events to process
 FLAGS.register('nEvents',
                100,
                VarParsing.multiplicity.singleton,
                VarParsing.varType.int,
                "Number of events to process.")
-options.parseArguments()
+FLAGS.register('seed',
+               1,
+               VarParsing.multiplicity.singleton,
+               VarParsing.varType.int,
+               "Initial generator seed.")
+FLAGS.parseArguments()
 
 #from Configuration.Eras.Era_Phase2C9_cff import Phase2C9
 from Configuration.Eras.Era_Phase2C17I13M9_cff import Phase2C17I13M9
@@ -41,7 +46,7 @@ process.load('Configuration.StandardSequences.EndOfProcess_cff')
 process.load('Configuration.StandardSequences.FrontierConditions_GlobalTag_cff')
 
 # random seeds
-process.RandomNumberGeneratorService.generator.initialSeed = cms.untracked.uint32(DUMMY)
+process.RandomNumberGeneratorService.generator.initialSeed = cms.untracked.uint32(FLAGS.seed)
 
 
 process.maxEvents = cms.untracked.PSet(

@@ -15,7 +15,18 @@ cp -r RecoNtuples HGCALprod/.
 cd HGCALprod/
 ```
 
-## To submit a complete production
+## Local test
+
+A local test can be launched with the following:
+
+```shell
+cd condor/
+bash batchScript.sh --seed 1 --folder Test --command CloseByParticle_Photon_ERZRanges_cfi_GEN_SIM.py --nevents 5 --particle pho
+```
+
+The three steps should run, producing outputs under ```/data_CMS/cms/${USER}/Test/```.
+
+## Submit a complete production
 
 The ntuples are produced by jobs launched via HTCondor. The storage and local folder are defined in ```condor/batchScript_template.sh```.
 
@@ -23,15 +34,13 @@ The ntuples are produced by jobs launched via HTCondor. The storage and local fo
 
 The command to run to setup the production and submit condor jobs is ```condor/submit.sh```. Run ```bash condor/submit.sh --help``` to print more information.
 
-Example: generate 200 ntuples with electrons, PU, and store the outputs in the subfolder ```electrons```:
+Example: generate 500 ntuples with 100 pion events each, no pile-up, and store the outputs in the subfolder ```SinglePion_0PU```:
 
 ```shell
-bash condor/submit.sh -p ele -n 201 -v 100 -f electrons -u
+bash condor/submit.sh -p pion -n 500 -v 100 -f SinglePion_0PU
 ```
 
-A ```log_electrons``` folder will be created with all information and log files.
-
-* _Note:_ The first job always fails due to a zero-valued seed (not supported by Geant4). To submit N successful jobs one has to launch N+1 jobs.
+A ```condor/log_SinglePion_0PU``` folder will be locally created with all information and log files.
 
 ### CMSSW Configuration
 

@@ -75,17 +75,17 @@ done
 echo "------ Arguments --------------"
 printf "DRYRUN\t\t= ${DRYRUN}\n"
 printf "PARTICLE\t= ${PARTICLE}\n"
-printf "NEVENTS\t= ${NEVENTS}\n"
+printf "NEVENTS\t\t= ${NEVENTS}\n"
 printf "NSAMPLES\t= ${NSAMPLES}\n"
 printf "PU\t\t= ${PU}\n"
 echo "-------------------------------"
 
 WORKDIR="condor"
-BATCH="${WORKDIR}/batchScript.sh"
 STOREDIR="${WORKDIR}/log_${FOLDER}"
-LOGS="${STOREDIR}/logs"
-TXT="${LOGS}/subInfo.txt"
+BATCH="${WORKDIR}/batchScript.sh"
+TXT="${STOREDIR}/subInfo.txt"
 SUB="${STOREDIR}/condor.sub"
+LOGS="${STOREDIR}/logs"
 
 if [ -d ${STOREDIR} ]; then
     echo "Folder ${STOREDIR} exists"
@@ -94,67 +94,65 @@ if [ -d ${STOREDIR} ]; then
     echo "You might also want to remove/update the folder storing the ntuples: '/data_CMS/cms/${USER}/${FOLDER}/'."
     exit 1
 else
-    cp ${WORKDIR}/batchScript_template.sh ${BATCH}
     mkdir -p "${STOREDIR}"
     mkdir ${LOGS}
     touch ${TXT}
-    cp ${BATCH} ${LOGS}/.
 fi
 
 if [ ${PARTICLE} == ${PARTICLES[0]} ]; then
 	outstr="Particles: electrons"
-	sed -i "s/PARTICLE/SElectron_2to1000_cfi_GEN_SIM.py/" ${BATCH}
+	CMSSW_COMMAND="SElectron_2to1000_cfi_GEN_SIM.py"
 elif [ ${PARTICLE} == ${PARTICLES[1]} ]; then
   	outstr="Particles: photons"
-	sed -i "s/PARTICLE/CloseByParticle_Photon_ERZRanges_cfi_GEN_SIM.py nEvents=${NEVENTS}/" ${BATCH}
+	CMSSW_COMMAND="CloseByParticle_Photon_ERZRanges_cfi_GEN_SIM.py"
 elif [ ${PARTICLE} == ${PARTICLES[2]} ]; then
 	outstr="Particles: pions"
-	sed -i "s/PARTICLE/CloseByParticle_Photon_ERZRanges_cfi_GEN_SIM.py nEvents=${NEVENTS}/" ${BATCH}
+	CMSSW_COMMAND="CloseByParticle_Photon_ERZRanges_cfi_GEN_SIM.py"
 else
   echo "ERROR: Unknwon Particle! Pick one of the following: ${PARTICLES[@]}"
   exit
 fi
-echo ${outstr}
 echo ${outstr} >> ${TXT}
 
 voms-proxy-init --rfc --voms cms -valid 192:00
 source /opt/exp_soft/cms/t3/t3setup
 
 if ! [ ${FOLDER} ]; then
-  echo 'ERROR: The name of the folder is missing!'
+  echo "ERROR: The name of the folder is missing!"
   exit
 else
-  sed -i "s/FOLDER/${FOLDER}/" ${BATCH}
-  echo 'Folder:' ${FOLDER} >> ${TXT}
+  echo "Folder:" ${FOLDER} >> ${TXT}
 fi
-
-if [[ ${PU} -eq 1 ]]; then
-  echo 'Pile-Up included' >> ${TXT}
-else
-  echo 'Pile-Up not included' >> ${TXT}
-  sed -i "s/_PU//" ${BATCH}
-fi
-
-echo 'Number of events per sample:' ${NEVENTS} >> ${TXT}
 
 if ! [ ${NSAMPLES} ]; then
-  echo 'ERROR: Specify the number of samples (add one to compensate for a seed=0 failure).'
+  echo "ERROR: Specify the number of samples."
   exit
 else
-  echo 'Number of samples:' ${NSAMPLES} >> ${TXT}
+  echo "Number of samples:" ${NSAMPLES} >> ${TXT}
 fi
+
+echo "Number of events per sample:" ${NEVENTS} >> ${TXT}
+
+if [[ ${PU} -eq 1 ]]; then
+  echo "Pile-Up included" >> ${TXT}
+  ARGUMENTS="--seed \$(SampleId) --particle ${PARTICLE} --command ${CMSSW_COMMAND} --nevents ${NEVENTS} --folder ${FOLDER} --pu"
+else
+  echo "Pile-Up not included" >> ${TXT}
+  ARGUMENTS="--seed \$(SampleId) --particle ${PARTICLE} --command ${CMSSW_COMMAND} --nevents ${NEVENTS} --folder ${FOLDER}"
+fi
+echo "Arguments:" ${NSAMPLES} >> ${TXT}
 
 # Write condor submission file
 cat >${SUB} <<EOL
-executable  = condor/batchScript.sh
-arguments   = \$(ProcId)
+executable  = ${BATCH}
+arguments   = ${ARGUMENTS}
 universe    = vanilla
-output      = ${LOGS}/\$(ProcId).out
-error       = ${LOGS}/\$(ProcId).err
-log         = ${LOGS}/\$(ProcId).log
+output      = ${LOGS}/\$(SampleId).out
+error       = ${LOGS}/\$(SampleId).err
+log         = ${LOGS}/\$(SampleId).log
 
 +JobFlavour = "tomorrow"
-+JobBatchName="\${FOLDER}"
++JobBatchName = "${FOLDER}"
 
 getenv = true
 
@@ -162,8 +160,10 @@ T3Queue = long
 WNTag=el7
 +SingularityCmd = ""
 include : /opt/exp_soft/cms/t3/t3queue |
+
+queue SampleId from seq 1 ${NSAMPLES} |
 EOL
 
-comm="condor_submit ${SUB} -queue ${NSAMPLES}";
+comm="condor_submit ${SUB}";
 [[ ${DRYRUN} -eq 1 ]] && printf "\nDry-run: ${comm}\n" || ${comm};
 
