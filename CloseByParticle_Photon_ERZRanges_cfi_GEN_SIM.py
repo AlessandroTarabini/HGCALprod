@@ -1,9 +1,19 @@
-# Auto generated configuration file
+# Auto generated configuration file [varParsing added February 2023]
 # using:
 # Revision: 1.19
 # Source: /local/reps/CMSSW/CMSSW/Configuration/Applications/python/ConfigBuilder.py,v
 # with command line options: CloseByParticle_Photon_ERZRanges_cfi --conditions auto:phase2_realistic_T15 -n 10 --era Phase2C9 --eventcontent FEVTDEBUG --relval 9000,100 -s GEN,SIM --datatier GEN-SIM --beamspot HLLHC --geometry Extended2026D49 --fileout file:step1.root
 import FWCore.ParameterSet.Config as cms
+
+from FWCore.ParameterSet.VarParsing import VarParsing
+FLAGS = VarParsing('gun')
+# add a list of strings for events to process
+FLAGS.register('nEvents',
+               100,
+               VarParsing.multiplicity.singleton,
+               VarParsing.varType.int,
+               "Number of events to process.")
+options.parseArguments()
 
 #from Configuration.Eras.Era_Phase2C9_cff import Phase2C9
 from Configuration.Eras.Era_Phase2C17I13M9_cff import Phase2C17I13M9
@@ -35,8 +45,8 @@ process.RandomNumberGeneratorService.generator.initialSeed = cms.untracked.uint3
 
 
 process.maxEvents = cms.untracked.PSet(
-        input = cms.untracked.int32(100),
-    output = cms.optional.untracked.allowed(cms.int32,cms.PSet)
+        input = cms.untracked.int32(FLAGS.nEvents),
+        output = cms.optional.untracked.allowed(cms.int32,cms.PSet)
 )
 
 # Input source
