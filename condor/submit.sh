@@ -73,9 +73,9 @@ echo "-------------------------------"
 
 WORKDIR="condor"
 BATCH="${WORKDIR}/batchScript.sh"
-STOREDIR="${WORKDIR}/${FOLDER}"
-LOGS="${STOREDIR}/log"
-TXT="${STOREDIR}/log/subInfo.txt"
+STOREDIR="${WORKDIR}/log_${FOLDER}"
+LOGS="${STOREDIR}/logs"
+TXT="${LOGS}/subInfo.txt"
 SUB="${STOREDIR}/condor.sub"
 
 if [ -d ${STOREDIR} ]; then
