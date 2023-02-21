@@ -1,82 +1,169 @@
 #!/usr/bin/env bash
 
+### Defaults
+PARTICLE=""
+NEVENTS="100"
+NSAMPLES=""
+PU="0"
+DRYRUN="0"
+
+declare -a PARTICLES=("ele" "pho" "pion")
+
+### Argument parsing
+HELP_STR="Prints this help message."
+DRYRUN_STR="(Boolean) Prints all the commands to be launched but does not launch them. Defaults to ${DRYRUN}."
+PARTICLE_STR="(String) Which particles to shoot. Available options: ${PARTICLES[@]}."
+NEVENTS_STR="(String) Number of events per sample. To be multiplied by the number of samples to obtain the total number of events produced. Defaults to ${NEVENTS}"
+NSAMPLES_STR="(String) How many samples to produce."
+FOLDER_STR="(String) Folder to store all files."
+PU_STR="(Boolean flag) If present, pile-up is included."
+
+function print_usage_submit {
+    USAGE="
+    Run example: bash $(basename "$0") -p pion -n 101 -v 100 -f SinglePion_0PU --dry-run
+
+    -h / --help     [ ${HELP_STR} ]
+    -d / --dry-run  [ ${DRYRUN_STR} ]
+    -p / --particle [ ${PARTICLE_STR} ]
+    -n / --nsamples [ ${NSAMPLES_STR} ]
+    -v / --nevents  [ ${NEVENTS_STR} ]
+    -f / --folder   [ ${FOLDER_STR} ]
+    -u / --pu       [ ${PU_STR} ]
+"
+    printf "${USAGE}"
+}
+
+while [[ $# -gt 0 ]]; do
+    key=${1}
+    case $key in
+	-h|--help)
+	    print_usage_submit
+	    exit 1
+	    ;;
+	-d|--dry-run)
+	    DRYRUN="1"
+	    shift;
+	    ;;
+	-p|--particle)
+	    PARTICLE=${2}
+	    shift; shift;
+	    ;;
+	-v|--nevents)
+	    NEVENTS=${2}
+	    shift; shift;
+	    ;;
+	-n|--nsamples)
+	    NSAMPLES=${2}
+	    shift; shift;
+	    ;;
+	-f|--folder)
+	    FOLDER=${2}
+	    shift; shift;
+	    ;;
+	-u|--pu)
+	    PU="1"
+	    shift;
+	    ;;
+	*)  # unknown option
+	    echo "Wrong parameter ${1}."
+	    exit 1
+	    ;;
+    esac
+done
+
+## Argument parsing: information for the user
+echo "------ Arguments --------------"
+printf "DRYRUN\t\t= ${DRYRUN}\n"
+printf "PARTICLE\t= ${PARTICLE}\n"
+printf "NEVENTS\t\t= ${NEVENTS}\n"
+printf "NSAMPLES\t= ${NSAMPLES}\n"
+printf "PU\t\t= ${PU}\n"
+echo "-------------------------------"
+
+WORKDIR="condor"
+STOREDIR="${WORKDIR}/log_${FOLDER}"
+BATCH="${WORKDIR}/batchScript.sh"
+TXT="${STOREDIR}/subInfo.txt"
+SUB="${STOREDIR}/condor.sub"
+LOGS="${STOREDIR}/logs"
+
+if [ -d ${STOREDIR} ]; then
+    echo "Folder ${STOREDIR} exists"
+    echo "Previous generation might be ongoing, please check"
+    echo "To start a new generation, remove the ${STOREDIR} folder: 'rm -r ${STOREDIR}/'"
+    echo "You might also want to remove/update the folder storing the ntuples: '/data_CMS/cms/${USER}/${FOLDER}/'."
+    exit 1
+else
+    mkdir -p "${STOREDIR}"
+    mkdir ${LOGS}
+    touch ${TXT}
+fi
+
+if [ ${PARTICLE} == ${PARTICLES[0]} ]; then
+	outstr="Particles: electrons"
+	CMSSW_COMMAND="SElectron_2to1000_cfi_GEN_SIM.py"
+elif [ ${PARTICLE} == ${PARTICLES[1]} ]; then
+  	outstr="Particles: photons"
+	CMSSW_COMMAND="CloseByParticle_Photon_ERZRanges_cfi_GEN_SIM.py"
+elif [ ${PARTICLE} == ${PARTICLES[2]} ]; then
+	outstr="Particles: pions"
+	CMSSW_COMMAND="CloseByParticle_Photon_ERZRanges_cfi_GEN_SIM.py"
+else
+  echo "ERROR: Unknwon Particle! Pick one of the following: ${PARTICLES[@]}"
+  exit
+fi
+echo ${outstr} >> ${TXT}
+
 voms-proxy-init --rfc --voms cms -valid 192:00
 source /opt/exp_soft/cms/t3/t3setup
 
-WORKDIR="condor"
-BATCH="${WORKDIR}/batchScript.sh"
-TXT="${WORKDIR}/subInfo.txt"
-
-cp ${WORKDIR}/batchScript_template.sh ${BATCH}
-touch ${TXT}
-
-while getopts 'p:n:f:u' flag; do
-  case "${flag}" in
-    p) particle="${OPTARG}" ;;
-    n) nevents="${OPTARG}" ;;
-    f) folder="${OPTARG}" ;;
-    u) pu='true' ;;
-  esac
-done
-
-LOGS="${WORKDIR}/log_${folder}"
-
-if [ $particle == 'ele' ]; then
-	outstr="Particles: electrons"
-	sed -i "s/PARTICLE/SElectron_2to1000_cfi_GEN_SIM.py/" ${BATCH}
-elif [ $particle == 'pho' ]; then
-  	outstr="Particles: photons"
-	sed -i "s/PARTICLE/CloseByParticle_Photon_ERZRanges_cfi_GEN_SIM.py/" ${BATCH}
-elif [ $particle == 'pion' ]; then
-	outstr="Particles: pions"
-	sed -i "s/PARTICLE/CloseByParticle_Photon_ERZRanges_cfi_GEN_SIM.py/" ${BATCH}
-else
-  echo '!!!! unknwon particle !!!!'
-  echo 'choices: ele - pho - pion'
-  exit
-fi
-echo ${outstr}
-echo ${outstr} >> ${TXT}
-
-
-if ! [ $folder ]; then
-  echo '!!!! Name of the folder is missing !!!!'
+if ! [ ${FOLDER} ]; then
+  echo "ERROR: The name of the folder is missing!"
   exit
 else
-  sed -i "s/FOLDER/$folder/" ${BATCH}
-  echo 'Folder:' $folder >> ${TXT}
+  echo "Folder:" ${FOLDER} >> ${TXT}
 fi
 
-
-if [ $pu ]; then
-  echo 'Pile-Up included'
-  echo 'Pile-Up included' >> ${TXT}
-else
-  echo 'Pile-Up not included'
-  echo 'Pile-Up not included' >> ${TXT}
-  sed -i "s/_PU//" ${BATCH}
-fi
-
-if ! [ $nevents ]; then
-  echo '!!!! Number of events is missing !!!!'
-  echo '+1 should be added to the number of desired events'
+if ! [ ${NSAMPLES} ]; then
+  echo "ERROR: Specify the number of samples."
   exit
 else
-  echo 'Number of events:' $nevents
-  echo 'Number of events:' $nevents >> ${TXT}
+  echo "Number of samples:" ${NSAMPLES} >> ${TXT}
 fi
 
-if [ -d ${LOGS} ]; then
-  echo 'Folder $LOGS exists'
-  echo 'Previous generation might be ongoing, please check'
-  echo 'To start a new generation, remove the $LOGS folder'
-  rm ${TXT}
-  rm ${BATCH}
-  exit
+echo "Number of events per sample:" ${NEVENTS} >> ${TXT}
+
+if [[ ${PU} -eq 1 ]]; then
+  echo "Pile-Up included" >> ${TXT}
+  ARGUMENTS="--seed \$(SampleId) --particle ${PARTICLE} --command ${CMSSW_COMMAND} --nevents ${NEVENTS} --folder ${FOLDER} --pu"
 else
-  mkdir ${LOGS}
-  mv ${TXT} ${LOGS}/.
-  cp ${BATCH} ${LOGS}/.
+  echo "Pile-Up not included" >> ${TXT}
+  ARGUMENTS="--seed \$(SampleId) --particle ${PARTICLE} --command ${CMSSW_COMMAND} --nevents ${NEVENTS} --folder ${FOLDER}"
 fi
+echo "Arguments:" ${NSAMPLES} >> ${TXT}
 
-condor_submit ${WORKDIR}/condor.sub -queue $nevents
+# Write condor submission file
+cat >${SUB} <<EOL
+executable  = ${BATCH}
+arguments   = ${ARGUMENTS}
+universe    = vanilla
+output      = ${LOGS}/\$(SampleId).out
+error       = ${LOGS}/\$(SampleId).err
+log         = ${LOGS}/\$(SampleId).log
+
++JobFlavour = "tomorrow"
++JobBatchName = "${FOLDER}"
+
+getenv = true
+
+T3Queue = long
+WNTag=el7
++SingularityCmd = ""
+include : /opt/exp_soft/cms/t3/t3queue |
+
+queue SampleId from seq 1 ${NSAMPLES} |
+EOL
+
+comm="condor_submit ${SUB}";
+[[ ${DRYRUN} -eq 1 ]] && printf "\nDry-run: ${comm}\n" || ${comm};
+

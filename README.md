@@ -15,28 +15,32 @@ cp -r RecoNtuples HGCALprod/.
 cd HGCALprod/
 ```
 
-## To submit a complete production
+## Local test
 
-The ntuples are produced by jobs launched via HTCondor. The storage and local folder are defined in ```condor/batchScript_template.sh```.
+A local test can be launched with the following:
+
+```shell
+cd condor/
+bash batchScript.sh --seed 1 --folder Test --command CloseByParticle_Photon_ERZRanges_cfi_GEN_SIM.py --nevents 5 --particle pho
+```
+
+The three steps should run, producing outputs under ```/data_CMS/cms/${USER}/Test/```.
+
+## Submit a complete production
+
+The ntuples are produced by jobs launched via HTCondor.
 
 ### Submit command
 
-```bash submit.sh``` is the command to run to setup the production and submit condor jobs, with the following arguments:
-* ```-p```: particles to generate (options: ```ele``` for electrons and ```pho``` for photons)
-* ```-n```: number of events to generate. The number of the event corresponds to the seed of step1. If the seed is zero, the code returns an error, so always set number-of-desired-events+1
-* ```-u```: flag to include PU
-* ```-f```: name of the subfolder of the storage area to store the outputs
+The command to run to setup the production and submit condor jobs is ```condor/submit.sh```. Run ```bash condor/submit.sh --help``` to print more information.
 
-Example: generate 200 ntuples with electrons, PU, and store the outputs in the subfolder ```electrons```:
+Example: generate 500 ntuples with 100 pion events each, no pile-up, and store the outputs in the subfolder ```SinglePion_0PU```:
 
 ```shell
-bash condor/submit.sh -p ele -n 201 -f electrons -u
+bash condor/submit.sh -p pion -n 500 -v 100 -f SinglePion_0PU
 ```
 
-* _Note1:_ The first job always fails due to a zero-valued seed (not supported by Geant4). To submit N successful jobs one has to launch N+1 jobs.
-* _Note2:_ Each job produces a number of events specified in the ```maxEvents.input``` parameter defined under ```CloseByParticle_Photon_ERZRanges_cfi_GEN_SIM.py```.
-
-After the submission a ```log``` folder is created with all information and log files.
+A ```condor/log_SinglePion_0PU``` folder will be locally created with all information and log files.
 
 ### CMSSW Configuration
 
