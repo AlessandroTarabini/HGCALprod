@@ -28,7 +28,7 @@ The three steps should run, producing outputs under ```/data_CMS/cms/${USER}/Tes
 
 ## Submit a complete production
 
-The ntuples are produced by jobs launched via HTCondor. The storage and local folder are defined in ```condor/batchScript_template.sh```.
+The ntuples are produced by jobs launched via HTCondor.
 
 ### Submit command
 
