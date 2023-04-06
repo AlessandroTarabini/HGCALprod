@@ -19,6 +19,10 @@ while [[ $# -gt 0 ]]; do
             COMMAND=${2}
             shift; shift;
             ;;
+        --PID)
+            PID=${2}
+            shift; shift;
+            ;;
 	--nevents)
             NEVENTS=${2}
             shift; shift;
@@ -31,7 +35,7 @@ while [[ $# -gt 0 ]]; do
             SEED=${2}
             shift; shift;
             ;;
-	*)  # unknown option                                                                                                               
+	*)  # unknown option
             echo "Wrong parameter ${1}."
             exit 1
             ;;
@@ -54,7 +58,7 @@ echo "--- " `pwd`
 mkdir -p ${STORAGE} ${STORAGE}/step1 ${STORAGE}/step2 ${STORAGE}/step3
 
 cp ${LOCAL}/${COMMAND} .
-cmsRun ${COMMAND} nEvents=${NEVENTS} seed=${SEED}
+cmsRun ${COMMAND} nEvents=${NEVENTS} seed=${SEED} PID=${PID}
 
 if [[ ${PU} -eq 1 ]]; then
     cp ${LOCAL}/step2_DIGI_L1TrackTrigger_L1_DIGI2RAW_HLT_PU.py .

@@ -18,6 +18,11 @@ FLAGS.register('seed',
                VarParsing.multiplicity.singleton,
                VarParsing.varType.int,
                "Initial generator seed.")
+FLAGS.register('PID',
+               22,
+               VarParsing.multiplicity.singleton,
+               VarParsing.varType.int,
+               "PID of the particle to generate.")
 FLAGS.parseArguments()
 
 #from Configuration.Eras.Era_Phase2C9_cff import Phase2C9
@@ -127,7 +132,7 @@ process.generator = cms.EDProducer("CloseByParticleGunProducer",
         MinPhi = cms.double(-3.14159265359),
         NParticles = cms.int32(1),
         Overlapping = cms.bool(False),
-        PartID = cms.vint32(211),
+        PartID = cms.vint32(FLAGS.PID),
         Pointing = cms.bool(True),
         # RMax = cms.double(127),
         # RMin = cms.double(41),

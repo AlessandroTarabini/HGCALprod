@@ -1,6 +1,7 @@
 voms-proxy-init --rfc --voms cms -valid 192:00
 source /opt/exp_soft/cms/t3/t3setup
 
+cd condor
 cp batchScript_onlystep3_template.sh batchScript_onlystep3.sh
 
 while getopts 's:f:u' flag; do
@@ -27,17 +28,41 @@ fi
 
 python3 step2_fileList_generator.py --path $folder
 
-if [ -d log ]; then
+if [ -d log_step3_${folder} ]; then
   echo 'Folder log exists'
   echo 'Previous generation might be ongoing, please check'
   echo 'To start a new generation, remove the log folder'
   rm batchScript_onlystep3.sh
   exit
 else
-  mkdir log
-  cp batchScript_onlystep3.sh log/.
+  mkdir log_step3_${folder}
+  cp batchScript_onlystep3.sh log_step3_${folder}/.
+  cp step2files.txt log_step3_${folder}/.
 fi
 
-condor_submit condor_onlystep3.sub -queue from step2files.txt
+cd log_step3_${folder}
+
+# Write condor submission file
+cat >condor.sub <<EOL
+executable  = batchScript_onlystep3.sh
+arguments   = \$(Item)
+universe    = vanilla
+output      = log_step3_${folder}/\$(Item).out
+error       = log_step3_${folder}/\$(item).err
+log         = log_step3_${folder}/\$(Item).log
+
++JobFlavour = "tomorrow"
++JobBatchName = "step3_${folder}"
+
+getenv = true
+
+T3Queue = long
+WNTag=el7
++SingularityCmd = ""
+include : /opt/exp_soft/cms/t3/t3queue |
+
+EOL
+
+condor_submit condor.sub -queue from step2files.txt
 
 rm step2files.txt

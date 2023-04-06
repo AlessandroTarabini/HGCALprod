@@ -45,7 +45,7 @@ from FastSimulation.Event.ParticleFilter_cfi import *
 
 process.maxEvents = cms.untracked.PSet(
     input = cms.untracked.int32(-1),
-#    input = cms.untracked.int32(-1),
+   # input = cms.untracked.int32(1),
 
    output = cms.optional.untracked.allowed(cms.int32,cms.PSet)
 )
@@ -82,7 +82,7 @@ process.source = cms.Source("PoolSource",
     ),
     secondaryFileNames = cms.untracked.vstring(),
 #    secondaryFileNames = cms.untracked.vstring(),
-#    skipEvents=cms.untracked.uint32(1)
+   # skipEvents=cms.untracked.uint32(20),
     duplicateCheckMode = cms.untracked.string('noDuplicateCheck'),
     dropDescendantsOfDroppedBranches=cms.untracked.bool(False),
     inputCommands=cms.untracked.vstring(
@@ -161,8 +161,8 @@ process.FEVTDEBUGHLToutput = cms.OutputModule("PoolOutputModule",
 
 process.ticlMultiClustersFromTrackstersTEST = cms.EDProducer("MultiClustersFromTrackstersProducer",
     LayerClusters = cms.InputTag("hgcalLayerClusters"),
-    Tracksters = cms.InputTag("ticlTrackstersMerge"), ## merged tracksters
-#    Tracksters = cms.InputTag("ticlTrackstersCLUE3DHigh"), ## raw tracksters clue3d
+   Tracksters = cms.InputTag("ticlTrackstersMerge"), ## merged tracksters
+    # Tracksters = cms.InputTag("ticlTrackstersCLUE3DHigh"), ## raw tracksters clue3d
     mightGet = cms.optional.untracked.vstring,
     verbosity = cms.untracked.uint32(3)
 )

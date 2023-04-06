@@ -105,9 +105,11 @@ if [ ${PARTICLE} == ${PARTICLES[0]} ]; then
 elif [ ${PARTICLE} == ${PARTICLES[1]} ]; then
   	outstr="Particles: photons"
 	CMSSW_COMMAND="CloseByParticle_Photon_ERZRanges_cfi_GEN_SIM.py"
+  PID=22
 elif [ ${PARTICLE} == ${PARTICLES[2]} ]; then
 	outstr="Particles: pions"
 	CMSSW_COMMAND="CloseByParticle_Photon_ERZRanges_cfi_GEN_SIM.py"
+  PID=211
 else
   echo "ERROR: Unknwon Particle! Pick one of the following: ${PARTICLES[@]}"
   exit
@@ -135,10 +137,10 @@ echo "Number of events per sample:" ${NEVENTS} >> ${TXT}
 
 if [[ ${PU} -eq 1 ]]; then
   echo "Pile-Up included" >> ${TXT}
-  ARGUMENTS="--seed \$(SampleId) --particle ${PARTICLE} --command ${CMSSW_COMMAND} --nevents ${NEVENTS} --folder ${FOLDER} --pu"
+  ARGUMENTS="--seed \$(SampleId) --particle ${PARTICLE} --command ${CMSSW_COMMAND} --nevents ${NEVENTS} --folder ${FOLDER} --PID ${PID} --pu"
 else
   echo "Pile-Up not included" >> ${TXT}
-  ARGUMENTS="--seed \$(SampleId) --particle ${PARTICLE} --command ${CMSSW_COMMAND} --nevents ${NEVENTS} --folder ${FOLDER}"
+  ARGUMENTS="--seed \$(SampleId) --particle ${PARTICLE} --command ${CMSSW_COMMAND} --nevents ${NEVENTS} --folder ${FOLDER} --PID ${PID}"
 fi
 echo "Arguments:" ${NSAMPLES} >> ${TXT}
 
@@ -166,4 +168,3 @@ EOL
 
 comm="condor_submit ${SUB}";
 [[ ${DRYRUN} -eq 1 ]] && printf "\nDry-run: ${comm}\n" || ${comm};
-
