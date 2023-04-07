@@ -47,9 +47,9 @@ cat >condor.sub <<EOL
 executable  = batchScript_onlystep3.sh
 arguments   = \$(Item)
 universe    = vanilla
-output      = log_step3_${folder}/\$(Item).out
-error       = log_step3_${folder}/\$(item).err
-log         = log_step3_${folder}/\$(Item).log
+output      = \$(Item).out
+error       = \$(item).err
+log         = \$(Item).log
 
 +JobFlavour = "tomorrow"
 +JobBatchName = "step3_${folder}"
