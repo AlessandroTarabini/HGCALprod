@@ -12,7 +12,7 @@ parser.add_option('',   '--path',  dest='PATH',  type='string',default='',   hel
 (opt, args) = parser.parse_args()
 
 fileList = ''
-fpath = '/grid_mnt/data__data.polcms/cms/tarabini/'+opt.PATH+'/step2/'
+fpath = "/data_CMS/cms/" + os.environ['USER'] + "/" + opt.PATH + "/step2/"
 for filename in os.listdir(fpath):
     inFile = ROOT.TFile.Open(fpath+filename ,"READ")
     if(inFile.GetListOfKeys().Contains('Events')):
