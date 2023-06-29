@@ -57,7 +57,7 @@ echo "--- " `pwd`
 
 mkdir -p ${STORAGE} ${STORAGE}/step1 ${STORAGE}/step2 ${STORAGE}/step3
 
-cp ${LOCAL}/${COMMAND} .
+cp ${STORAGE}/${COMMAND} .
 cmsRun ${COMMAND} nEvents=${NEVENTS} seed=${SEED} PID=${PID}
 
 if [[ ${PU} -eq 1 ]]; then
