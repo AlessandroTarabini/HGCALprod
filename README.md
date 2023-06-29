@@ -21,7 +21,7 @@ A local test can be launched with the following:
 
 ```shell
 cd condor/
-bash batchScript.sh --seed 1 --folder Test --command CloseByParticle_Photon_ERZRanges_cfi_GEN_SIM.py --nevents 5 --particle pho
+bash batchScript.sh --seed 1 --folder Test --command CloseByParticle_Photon_ERZRanges_cfi_GEN_SIM.py --nevents 5 --particle pho --PID 22
 ```
 
 The three steps should run, producing outputs under ```/data_CMS/cms/${USER}/Test/```.
@@ -47,7 +47,7 @@ A ```condor/log_SinglePion_0PU``` folder will be locally created with all inform
 For the case of photons and pions, ```condor/submit.sh``` launches ```CloseByParticle_Photon_ERZRanges_cfi_GEN_SIM.py```. The latter provides the configuration for the particle gun (defined [here](https://github.com/cms-sw/cmssw/blob/master/IOMC/ParticleGuns/src/CloseByParticleGunProducer.cc)), generating particle from the font face of HGCAL (no interactions in the tracker) with the following arguments:
 
 * ```ControlledByEta```: uniform particle along pseudo-rapidity &eta; if ```True```, across the angle &varphi; if ```False```;
-* ```MaxEnSpread```: if ```True``` the energies of the generated particles are set in constant steps of the specified range. If ```False``` particles will be generated with an energy randomly sampled in ```[EnMin, EnMax]```; 
+* ```MaxEnSpread```: if ```True``` the energies of the generated particles are set in constant steps of the specified range. If ```False``` particles will be generated with an energy randomly sampled in ```[EnMin, EnMax]```;
 * ```Delta```: arc-length distance in centimeters along &varphi; between particles. For instance, if two particles are generated, the second one will be assigned a &varphi; equal to ```phi_1 + Delta/R```, where the distance ```R``` to the primary vertex is obtained from &eta; and the Z coordinate. This is valid only when ```Overlapping=False```;
 * ```NParticles```: number of particles generated per event;
 * ```Overlapping```: whether there _can be_ an overlap between generated particles (no effect when generating a single particle)

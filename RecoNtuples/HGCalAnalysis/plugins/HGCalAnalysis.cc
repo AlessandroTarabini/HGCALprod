@@ -48,6 +48,8 @@
 #include "FastSimulation/CaloGeometryTools/interface/Transform3DPJ.h"
 #include "FastSimulation/Event/interface/FSimEvent.h"
 #include "FastSimulation/Event/interface/FSimTrack.h"
+#include "SimDataFormats/Track/interface/SimTrack.h"
+#include "SimDataFormats/Track/interface/SimTrackContainer.h"
 #include "FastSimulation/Event/interface/FSimVertex.h"
 #include "MagneticField/Engine/interface/MagneticField.h"
 #include "MagneticField/Records/interface/IdealMagneticFieldRecord.h"
@@ -283,6 +285,9 @@ class HGCalAnalysis : public edm::one::EDAnalyzer<edm::one::WatchRuns, edm::one:
   std::vector<std::vector<float>> genpart_posx_;
   std::vector<std::vector<float>> genpart_posy_;
   std::vector<std::vector<float>> genpart_posz_;
+  std::vector<std::vector<float>> genpart_posx_tracker_;
+  std::vector<std::vector<float>> genpart_posy_tracker_;
+  std::vector<std::vector<float>> genpart_posz_tracker_;
 
   ////////////////////
   // reco::GenParticles
@@ -383,6 +388,30 @@ class HGCalAnalysis : public edm::one::EDAnalyzer<edm::one::WatchRuns, edm::one:
   std::vector<float> simcluster_pt_impactMomentumEta_;
   std::vector<float> simcluster_pt_impactMomentumPhi_;
   std::vector<float> simcluster_pt_impactMomentumE_;
+
+  ////////////////////
+  // sim tracks
+  //
+  std::vector<float> simTracks_boundary_x_;
+  std::vector<float> simTracks_boundary_y_;
+  std::vector<float> simTracks_boundary_z_;
+  std::vector<float> simTracks_boundary_en_;
+  std::vector<float> simTracks_boundary_pt_;
+  std::vector<float> simTracks_boundary_eta_;
+  std::vector<float> simTracks_boundary_phi_;
+  std::vector<float> simTracks_boundary_id_;
+  std::vector<float> simTracks_surface_x_;
+  std::vector<float> simTracks_surface_y_;
+  std::vector<float> simTracks_surface_z_;
+  std::vector<float> simTracks_surface_en_;
+  std::vector<float> simTracks_surface_pt_;
+  std::vector<float> simTracks_surface_eta_;
+  std::vector<float> simTracks_surface_phi_;
+  std::vector<float> simTracks_surface_id_;
+  std::vector<float> simTracks_HGCALfromBoundary_x_;
+  std::vector<float> simTracks_HGCALfromBoundary_y_;
+  std::vector<float> simTracks_HGCALfromBoundary_z_;
+
   ////////////////////
   //simhits
   //
@@ -548,7 +577,7 @@ HGCalAnalysis::HGCalAnalysis(const edm::ParameterSet &iConfig)
       verbose_(iConfig.getParameter<bool>("verbose")),
       caloHitSourceEE_(iConfig.getParameter<std::string>("CaloHitSourceEE")),
       caloHitSourceHEfront_(iConfig.getParameter<std::string>("CaloHitSourceHEfront")),
-      caloHitSourceHEback_(iConfig.getParameter<std::string>("CaloHitSourceHEback")), 
+      caloHitSourceHEback_(iConfig.getParameter<std::string>("CaloHitSourceHEback")),
       pdtToken_(esConsumes<edm::Transition::BeginRun>()),
       tok_geom_(esConsumes<edm::Transition::BeginRun>()),
 //      tok_geom2_(esConsumes<CaloGeometry, CaloGeometryRecord>()),
@@ -611,7 +640,7 @@ HGCalAnalysis::HGCalAnalysis(const edm::ParameterSet &iConfig)
     consumes<std::vector<reco::PFCluster>>(edm::InputTag("particleFlowClusterHGCalFromMultiCl","",inputTag_Reco_));
   */
 
-  
+
 
 
   multiClusters_ =
@@ -668,7 +697,9 @@ HGCalAnalysis::HGCalAnalysis(const edm::ParameterSet &iConfig)
   t_->Branch("genpart_posx", &genpart_posx_);
   t_->Branch("genpart_posy", &genpart_posy_);
   t_->Branch("genpart_posz", &genpart_posz_);
-
+  t_->Branch("genpart_posx_tracker", &genpart_posx_tracker_);
+  t_->Branch("genpart_posy_tracker", &genpart_posy_tracker_);
+  t_->Branch("genpart_posz_tracker", &genpart_posz_tracker_);
 
   if (readGen_) {
     t_->Branch("gen_eta", &gen_eta_);
@@ -762,14 +793,38 @@ HGCalAnalysis::HGCalAnalysis(const edm::ParameterSet &iConfig)
   t_->Branch("simcluster_y_impactPoint", &simcluster_y_impactPoint_);
   t_->Branch("simcluster_z_impactPoint", &simcluster_z_impactPoint_);
   t_->Branch("simcluster_eta_impactPoint", &simcluster_eta_impactPoint_);
-  t_->Branch("simcluster_phi_impactPoint", &simcluster_phi_impactPoint_); 
+  t_->Branch("simcluster_phi_impactPoint", &simcluster_phi_impactPoint_);
   t_->Branch("simcluster_pt_impactMomentumPt", &simcluster_pt_impactMomentumPt_);
   t_->Branch("simcluster_pt_impactMomentumEta", &simcluster_pt_impactMomentumEta_);
   t_->Branch("simcluster_pt_impactMomentumPhi", &simcluster_pt_impactMomentumPhi_);
   t_->Branch("simcluster_pt_impactMomentumE", &simcluster_pt_impactMomentumE_);
+
+  ////////////////////
+  // sim tracks
+  //
+  t_->Branch("simTracks_boundary_x", &simTracks_boundary_x_);
+  t_->Branch("simTracks_boundary_y", &simTracks_boundary_y_);
+  t_->Branch("simTracks_boundary_z", &simTracks_boundary_z_);
+  t_->Branch("simTracks_boundary_en", &simTracks_boundary_en_);
+  t_->Branch("simTracks_boundary_pt", &simTracks_boundary_pt_);
+  t_->Branch("simTracks_boundary_phi", &simTracks_boundary_phi_);
+  t_->Branch("simTracks_boundary_eta", &simTracks_boundary_eta_);
+  t_->Branch("simTracks_boundary_id", &simTracks_boundary_id_);
+  t_->Branch("simTracks_surface_x", &simTracks_surface_x_);
+  t_->Branch("simTracks_surface_y", &simTracks_surface_y_);
+  t_->Branch("simTracks_surface_z", &simTracks_surface_z_);
+  t_->Branch("simTracks_surface_en", &simTracks_surface_en_);
+  t_->Branch("simTracks_surface_pt", &simTracks_surface_pt_);
+  t_->Branch("simTracks_surface_phi", &simTracks_surface_phi_);
+  t_->Branch("simTracks_surface_eta", &simTracks_surface_eta_);
+  t_->Branch("simTracks_surface_id", &simTracks_surface_id_);
+  t_->Branch("simTracks_HGCALfromBoundary_x", &simTracks_HGCALfromBoundary_x_);
+  t_->Branch("simTracks_HGCALfromBoundary_y", &simTracks_HGCALfromBoundary_y_);
+  t_->Branch("simTracks_HGCALfromBoundary_z", &simTracks_HGCALfromBoundary_z_);
+
   ////////////////////
   // sim hits
-  //    
+  //
   t_->Branch("simHit_time", &simHit_time_);
   t_->Branch("simHit_x", &simHit_x_);
   t_->Branch("simHit_y", &simHit_y_);
@@ -921,7 +976,7 @@ HGCalAnalysis::~HGCalAnalysis() {
     //unsigned int subdet = DetId(simId).subdetId();
     int subdet, layer, cell, sec, subsec, zp;
     HGCalTestNumbering::unpackHexagonIndex(simId, subdet, zp, layer, sec, subsec, cell);
-    
+
     //sec is wafer and subsec is celltyp
     //skip this hit if after ganging it is not valid
     auto recoLayerCell = dddConst.simToReco(cell, layer, sec, topo.detectorType());
@@ -975,6 +1030,9 @@ void HGCalAnalysis::clearVariables() {
   genpart_posx_.clear();
   genpart_posy_.clear();
   genpart_posz_.clear();
+  genpart_posx_tracker_.clear();
+  genpart_posy_tracker_.clear();
+  genpart_posz_tracker_.clear();
 
   ////////////////////
   // reco::GenParticles
@@ -1065,7 +1123,7 @@ void HGCalAnalysis::clearVariables() {
   simcluster_wafers_v_.clear();
   simcluster_cells_u_.clear();
   simcluster_cells_v_.clear();
-  simcluster_time_impactPoint_.clear(); 
+  simcluster_time_impactPoint_.clear();
   simcluster_x_impactPoint_.clear();
   simcluster_y_impactPoint_.clear();
   simcluster_z_impactPoint_.clear();
@@ -1075,6 +1133,31 @@ void HGCalAnalysis::clearVariables() {
   simcluster_pt_impactMomentumPhi_.clear();
   simcluster_pt_impactMomentumEta_.clear();
   simcluster_pt_impactMomentumE_.clear();
+
+  ////////////////////
+  // sim tracks
+  //
+  simTracks_boundary_x_.clear();
+  simTracks_boundary_y_.clear();
+  simTracks_boundary_z_.clear();
+  simTracks_boundary_en_.clear();
+  simTracks_boundary_pt_.clear();
+  simTracks_boundary_phi_.clear();
+  simTracks_boundary_eta_.clear();
+  simTracks_boundary_id_.clear();
+  simTracks_surface_x_.clear();
+  simTracks_surface_y_.clear();
+  simTracks_surface_z_.clear();
+  simTracks_surface_en_.clear();
+  simTracks_surface_pt_.clear();
+  simTracks_surface_phi_.clear();
+  simTracks_surface_eta_.clear();
+  simTracks_surface_id_.clear();
+  simTracks_HGCALfromBoundary_x_.clear();
+  simTracks_HGCALfromBoundary_y_.clear();
+  simTracks_HGCALfromBoundary_z_.clear();
+
+
   ////////////////////
   //sim hits
   //
@@ -1310,9 +1393,9 @@ void HGCalAnalysis::analyze(const edm::Event &iEvent, const edm::EventSetup &iSe
   toHGCalPropagator.setPropagationTargetZ(layerPositions_[0]);
   std::vector<FSimTrack *> allselectedgentracks;
   unsigned int npart = mySimEvent_->nTracks();
-  //  std::cout<<"number of simtracks in evt:"<<npart<<std::endl;
+   // std::cout<<"number of simtracks in evt:"<<npart<<std::endl;
   //  std::cout<<"layerPositions_[0] : "<<std::endl;
-   
+
   for (unsigned int i = 0; i < npart; ++i) {
     std::vector<float> xp, yp, zp;
     FSimTrack &myTrack(mySimEvent_->track(i));
@@ -1390,7 +1473,169 @@ void HGCalAnalysis::analyze(const edm::Event &iEvent, const edm::EventSetup &iSe
     genpart_posx_.push_back(xp);
     genpart_posy_.push_back(yp);
     genpart_posz_.push_back(zp);
+
+    std::vector<float> xpt, ypt, zpt;
+    if (myTrack.momentum().eta() > 0){
+      // cout << "positive" << endl;
+      // cout << "id: " << myTrack.id() << endl;
+      // cout << "trackerSurfacePosition: " << myTrack.trackerSurfacePosition() << endl;
+      // cout << "kinematics: " << myTrack.momentum().eta() << " " << myTrack.momentum().phi() << " " << myTrack.momentum().pt() << endl;
+      // cout << "crossedBoundary: " << myTrack.crossedBoundary() << " " << myTrack.getIDAtBoundary() << " " << myTrack.getPositionAtBoundary().x()
+      //      << " " << myTrack.getPositionAtBoundary().y() << " " << myTrack.getPositionAtBoundary().z() << myTrack.getMomentumAtBoundary().pt() << endl;
+      // cout << "noEndVertex: " << myTrack.noEndVertex() << endl;
+      // cout << "nDaughters: " << myTrack.nDaughters() << endl;
+      // cout << "type: " << myTrack.type() << endl;
+      // cout << "orig_vertex: " << orig_vtx.x() << " " << orig_vtx.y() << " " << orig_vtx.z() << endl;
+      // cout << "vertex: " << vtx.x() << " " << vtx.y() << " " << vtx.z() << endl;
+      // cout << "daughters: " << endl;
+      // for (int i = 0; i < myTrack.nDaughters(); ++i) cout << myTrack.daughter(i).id() << " " << myTrack.daughter(i).type() << endl;
+      // cout << endl;
+
+      // cout << "trackerPropagator: " << endl;
+      HGCal_helpers::simpleTrackPropagator trackerPropagator(aField_);
+      HGCal_helpers::coordinates hitsTracker;
+      // This is to be safe against the nuclear interactions
+      // In those cases one of the particles produced can have the origin and end vertex at the same position
+      if ( abs(abs(vtx.z()) - abs(orig_vtx.z())) < 0.0001 ) {
+        for ( float i = 0; i < 4; i += 1 ){
+          xpt.push_back(vtx.x());
+          ypt.push_back(vtx.y());
+          zpt.push_back(vtx.z());
+          // cout << "close" << endl;
+        }
+      }else{
+        for ( float i = orig_vtx.z(); i <= vtx.z(); i += abs(orig_vtx.z() - vtx.z())/4 ){
+          // cout << i << " " << orig_vtx.z() << " " << vtx.z() << " " << endl;
+          trackerPropagator.setPropagationTargetZ(i);
+          trackerPropagator.propagate(myTrack.momentum(), orig_vtx, myTrack.charge(), hitsTracker);
+          xpt.push_back(hitsTracker.x);
+          ypt.push_back(hitsTracker.y);
+          zpt.push_back(hitsTracker.z);
+          // cout << hitsTracker.x << " " << hitsTracker.y << " " << hitsTracker.z << endl;
+        }
+      }
+      // cout << endl;
+    }else{
+      // cout << "negative" << endl;
+      // cout << "id: " << myTrack.id() << endl;
+      // cout << "trackerSurfacePosition: " << myTrack.trackerSurfacePosition() << endl;
+      // cout << "kinematics: " << myTrack.momentum().eta() << " " << myTrack.momentum().phi() << " " << myTrack.momentum().pt() << endl;
+      // cout << "crossedBoundary: " << myTrack.crossedBoundary() << " " << myTrack.getIDAtBoundary() << " " << myTrack.getPositionAtBoundary().x()
+      //      << " " << myTrack.getPositionAtBoundary().y() << " " << myTrack.getPositionAtBoundary().z() << myTrack.getMomentumAtBoundary().pt() << endl;
+      // cout << "noEndVertex: " << myTrack.noEndVertex() << endl;
+      // cout << "nDaughters: " << myTrack.nDaughters() << endl;
+      // cout << "type: " << myTrack.type() << endl;
+      // cout << "orig_vertex: " << orig_vtx.x() << " " << orig_vtx.y() << " " << orig_vtx.z() << endl;
+      // cout << "vertex: " << vtx.x() << " " << vtx.y() << " " << vtx.z() << endl;
+      // cout << "daughters: " << endl;
+      // for (int i = 0; i < myTrack.nDaughters(); ++i) cout << myTrack.daughter(i).id() << " " << myTrack.daughter(i).type() << endl;
+
+      // cout << "trackerPropagator: " << endl;
+      HGCal_helpers::simpleTrackPropagator trackerPropagator(aField_);
+      HGCal_helpers::coordinates hitsTracker;
+      // This is to be safe against the nuclear interactions
+      // In those cases one of the particles produced can have the origin and end vertex at the same position
+      if ( abs(abs(vtx.z()) - abs(orig_vtx.z())) < 0.0001 ) {
+        for ( float i = 0; i < 4; i += 1 ){
+          xpt.push_back(vtx.x());
+          ypt.push_back(vtx.y());
+          zpt.push_back(vtx.z());
+          // cout << "close" << endl;
+        }
+      }else{
+        for ( float i = orig_vtx.z(); i >= vtx.z(); i -= abs(orig_vtx.z() - vtx.z())/4 ){
+          // cout << i << " " << orig_vtx.z() << " " << vtx.z() << " " << endl;
+          trackerPropagator.setPropagationTargetZ(i);
+          trackerPropagator.propagate(myTrack.momentum(), orig_vtx, myTrack.charge(), hitsTracker);
+          xpt.push_back(hitsTracker.x);
+          ypt.push_back(hitsTracker.y);
+          zpt.push_back(hitsTracker.z);
+          // cout << hitsTracker.x << " " << hitsTracker.y << " " << hitsTracker.z << endl;
+        }
+      }
+      // cout << endl;
+    }
+    genpart_posx_tracker_.push_back(xpt);
+    genpart_posy_tracker_.push_back(ypt);
+    genpart_posz_tracker_.push_back(zpt);
+
   }
+
+
+  ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+  // edm::Handle<edm::SimTrackContainer> SimTk;
+  // iEvent.getByLabel("g4SimHits",SimTk);
+  edm::Handle<std::vector<SimTrack>> simTracks;
+  iEvent.getByLabel("g4SimHits", simTracks); // "g4SimHits" is the input tag for SimTrack collection
+  edm::Handle<std::vector<SimVertex>> simVertices;
+  iEvent.getByLabel("g4SimHits", simVertices);
+  // for ( edm::SimTrackContainer::const_iterator itk=simTracks->begin(); itk!=simTracks->end(); ++itk )
+  // {
+  //   cout << itk.momentum().pt() << endl;
+  // }
+
+  // int j =0;
+  for (const auto& simTrack : *simTracks){
+    // j += 1;
+    // if (simTrack.momentum().eta() > 0){
+    //   cout << "positive" << endl;
+    //   cout << "id: " << simTrack.trackId() << endl;
+    //   cout << "trackerSurfacePosition: " << simTrack.trackerSurfacePosition() << endl;
+    //   cout << "kinematics: " << simTrack.momentum().eta() << " " << simTrack.momentum().phi() << " " << simTrack.momentum().e() << endl;
+    //   cout << "crossedBoundary: " << simTrack.crossedBoundary() << " " << simTrack.getIDAtBoundary() << " " << simTrack.getPositionAtBoundary().x()
+    //        << " " << simTrack.getPositionAtBoundary().y() << " " << simTrack.getPositionAtBoundary().z() << " " << simTrack.getMomentumAtBoundary().pt() << endl;
+    //   cout << "noEndVertex: " << simTrack.noVertex() << endl;
+    //   // cout << "nDaughters: " << simTrack.nDaughters() << endl;
+    //   cout << "type: " << simTrack.type() << endl;
+    //   const auto& simVertex = (*simVertices)[simTrack.vertIndex()];
+    //   cout << "orig_vertex: " << simVertex.position().x() << " " << simVertex.position().y() << " " << simVertex.position().z() << endl;
+    //   cout << "genpartIndex " << simTrack.genpartIndex() << endl;
+    //   cout << "vertIndex " << simTrack.vertIndex() << endl;
+    //   const auto& motherSimVertex = (*simVertices)[simTrack.vertIndex()];
+    //   cout << "motherSimVertex.parentIndex() " << motherSimVertex.parentIndex() << endl;
+    //   const auto& motherSimTrack = (*simTracks)[motherSimVertex.parentIndex()];
+    //   cout << "motherSimTrack.trackId() " << motherSimTrack.trackId() << endl;
+    //   // cout << "vertex: " << vtx.x() << " " << vtx.y() << " " << vtx.z() << endl;
+    //   // cout << "daughters: " << endl;
+    //   // for (int i = 0; i < simTrack.nDaughters(); ++i) cout << simTrack.daughter(i).id() << " " << simTrack.daughter(i).type() << endl;
+    //   // for (auto daughterIndex : simTrack.daughterIds()){
+    //   //   const auto& daughter = (*simTracks)[daughterIndex];
+    //   //   cout << daughter.trackId() << " " << daugrhter.type()  << endl;
+    //   // }
+    //   cout << endl;
+    // }
+    if (simTrack.crossedBoundary()){
+      simTracks_boundary_x_.push_back(simTrack.getPositionAtBoundary().x());
+      simTracks_boundary_y_.push_back(simTrack.getPositionAtBoundary().y());
+      simTracks_boundary_z_.push_back(simTrack.getPositionAtBoundary().z());
+      simTracks_boundary_en_.push_back(simTrack.getMomentumAtBoundary().energy());
+      simTracks_boundary_pt_.push_back(simTrack.getMomentumAtBoundary().pt());
+      simTracks_boundary_eta_.push_back(simTrack.getPositionAtBoundary().eta());
+      simTracks_boundary_phi_.push_back(simTrack.getPositionAtBoundary().phi());
+      simTracks_boundary_id_.push_back(simTrack.type());
+      simTracks_surface_x_.push_back(simTrack.trackerSurfacePosition().x());
+      simTracks_surface_y_.push_back(simTrack.trackerSurfacePosition().y());
+      simTracks_surface_z_.push_back(simTrack.trackerSurfacePosition().z());
+      simTracks_surface_en_.push_back(simTrack.trackerSurfaceMomentum().energy());
+      simTracks_surface_pt_.push_back(simTrack.trackerSurfaceMomentum().pt());
+      simTracks_surface_eta_.push_back(simTrack.trackerSurfaceMomentum().eta());
+      simTracks_surface_phi_.push_back(simTrack.trackerSurfaceMomentum().phi());
+      simTracks_surface_id_.push_back(simTrack.type());
+
+      HGCal_helpers::coordinates HGCALface;
+      math::XYZTLorentzVectorD momentum(simTrack.getMomentumAtBoundary());
+      math::XYZTLorentzVectorD position(simTrack.getPositionAtBoundary());
+      toHGCalPropagator.propagate(momentum, position, simTrack.charge(), HGCALface);
+
+      simTracks_HGCALfromBoundary_x_.push_back(HGCALface.x);
+      simTracks_HGCALfromBoundary_y_.push_back(HGCALface.y);
+      simTracks_HGCALfromBoundary_z_.push_back(HGCALface.z);
+
+    }
+  }
+  // cout << j << endl;
+  ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 
   // associate gen particles to mothers
   //  std::cout<<"okay till here============================================================>"<<std::endl;
@@ -1413,7 +1658,7 @@ void HGCalAnalysis::analyze(const edm::Event &iEvent, const edm::EventSetup &iSe
   // make a map detid-rechit
   hitmap_.clear();
   hfhitmap_.clear();
-  
+
   switch (algo_) {
     case 1: {
       iEvent.getByToken(recHitsEE_, recHitHandleEE);
@@ -1503,7 +1748,7 @@ void HGCalAnalysis::analyze(const edm::Event &iEvent, const edm::EventSetup &iSe
   for (unsigned ic = 0; ic < nclus; ++ic) {
     // std::cout<<"lc no ................... "<<ic<<std::endl;
     edm::Ptr<reco::BasicCluster> clusterPtr(clusterHandle, ic);
-    auto timeClusterKey = lcTime[clusterPtr];  
+    auto timeClusterKey = lcTime[clusterPtr];
     if (timeClusterKey.first > 0){
       std::cout<<"lc no ................... "<<ic<<std::endl;
       std::cout<<"time,error : "<<timeClusterKey.first<<" , "<<timeClusterKey.second<<std::endl;
@@ -1517,7 +1762,7 @@ void HGCalAnalysis::analyze(const edm::Event &iEvent, const edm::EventSetup &iSe
   //  std::cout<<"size of multicluster: "<<multiClusters.size()<<std::endl;
   //  std::cout<<"okay till here============================================================>2"<<std::endl;
   if (algo_ < 4){
-    //    std::cout<<"size before first filling x|t: "<<cluster2d_x_.size()<<"|"<<cluster2d_t_.size()<<std::endl; 
+    //    std::cout<<"size before first filling x|t: "<<cluster2d_x_.size()<<"|"<<cluster2d_t_.size()<<std::endl;
     for (unsigned int i = 0; i < multiClusters.size(); i++) {
       int cl2dSeed = 0;
       std::set<int> layers;
@@ -1526,7 +1771,7 @@ void HGCalAnalysis::analyze(const edm::Event &iEvent, const edm::EventSetup &iSe
       //      std::cout<<"inside multicluster "<<i<<std::endl;
 
       // problem with folloeing block
-      
+
       for (reco::HGCalMultiCluster::component_iterator it = multiClusters[i].begin();
            it != multiClusters[i].end(); it++) {
 	//      std::cout<<"before filling cluster1"<<std::endl;
@@ -1535,16 +1780,16 @@ void HGCalAnalysis::analyze(const edm::Event &iEvent, const edm::EventSetup &iSe
 	//      std::cout<<"before filling cluster2"<<std::endl;
         int layer = fillLayerCluster(*it, true, i);
         layers.insert(layer);
-	//	const edm::Ptr<reco::CaloCluster> &layerCluster1  = *it 
-	auto timeClusterKey = lcTime[*it];  
+	//	const edm::Ptr<reco::CaloCluster> &layerCluster1  = *it
+	auto timeClusterKey = lcTime[*it];
 	//std::cout<<"time,error : "<<timeClusterKey.first<<" , "<<timeClusterKey.second<<std::endl;
-	cluster2d_t_.push_back(timeClusterKey.first); 
-	cluster2d_dt_.push_back(timeClusterKey.second); 
+	cluster2d_t_.push_back(timeClusterKey.first);
+	cluster2d_dt_.push_back(timeClusterKey.second);
 	//std::cout<<"cluster t|energy :"<<timeClusterKey.first<<"|"<<(*it)->energy()<<std::endl;
 	//	cout<<"layer: "<<layer<<std::endl;
 
       }  // end of loop on layer clusters
-      
+
       double pt = multiClusters[i].energy() / cosh(multiClusters[i].eta());
 
       multiclus_eta_.push_back(multiClusters[i].eta());
@@ -1564,7 +1809,7 @@ void HGCalAnalysis::analyze(const edm::Event &iEvent, const edm::EventSetup &iSe
     }  // end of loop on multiclusters
     //    std::cout<<"printing cluster props------------------------------------------------------>"<<std::endl;
     //    int counter = 0;
-    //    std::cout<<"size before filling x|t: "<<cluster2d_x_.size()<<"|"<<cluster2d_t_.size()<<std::endl; 
+    //    std::cout<<"size before filling x|t: "<<cluster2d_x_.size()<<"|"<<cluster2d_t_.size()<<std::endl;
     // Fills the additional 2d layers
     for (unsigned ic = 0; ic < nclus; ++ic) {
       edm::Ptr<reco::BasicCluster> clusterPtr(clusterHandle, ic);
@@ -1574,10 +1819,10 @@ void HGCalAnalysis::analyze(const edm::Event &iEvent, const edm::EventSetup &iSe
           fillLayerCluster(clusterPtr, rawRecHits_);
 
 
-	  auto timeClusterKey = lcTime[clusterPtr];  
+	  auto timeClusterKey = lcTime[clusterPtr];
 	  //std::cout<<"time,error : "<<timeClusterKey.first<<" , "<<timeClusterKey.second<<std::endl;
-	  cluster2d_t_.push_back(timeClusterKey.first); 
-	  cluster2d_dt_.push_back(timeClusterKey.second); 
+	  cluster2d_t_.push_back(timeClusterKey.first);
+	  cluster2d_dt_.push_back(timeClusterKey.second);
 	  //std::cout<<"cluster t|energy :"<<timeClusterKey.first<<"|"<<clusterPtr->energy()<<std::endl;
 	  //counter++;
         }
@@ -1586,7 +1831,7 @@ void HGCalAnalysis::analyze(const edm::Event &iEvent, const edm::EventSetup &iSe
     //    std::cout<<"count of clusters: "<<counter<<std::endl;
   }
   //    std::cout<<"size after filling en|t: "<<cluster2d_x_.size()<<"|"<<cluster2d_t_.size()<<std::endl;
- 
+
   // Fill remaining RecHits
   if (rawRecHits_) {
     if (algo_ < 3) {
@@ -1639,7 +1884,7 @@ void HGCalAnalysis::analyze(const edm::Event &iEvent, const edm::EventSetup &iSe
         }
       }
 
-      const HFRecHitCollection &rechitsHF = *recHitHandleHF;     
+      const HFRecHitCollection &rechitsHF = *recHitHandleHF;
        // loop over HF RecHits
       for (HFRecHitCollection::const_iterator it_hit = rechitsHF.begin(); it_hit < rechitsHF.end();
            ++it_hit) {
@@ -1652,7 +1897,7 @@ void HGCalAnalysis::analyze(const edm::Event &iEvent, const edm::EventSetup &iSe
     }
 
     if (algo_ == 5) {
-      const HFRecHitCollection &rechitsHF = *recHitHandleHF;     
+      const HFRecHitCollection &rechitsHF = *recHitHandleHF;
        // loop over HF RecHits
       for (HFRecHitCollection::const_iterator it_hit = rechitsHF.begin(); it_hit < rechitsHF.end();
            ++it_hit) {
@@ -1690,7 +1935,7 @@ void HGCalAnalysis::analyze(const edm::Event &iEvent, const edm::EventSetup &iSe
   {
     std::vector<PCaloHit> caloHitsEE;
     caloHitsEE.insert(caloHitsEE.end(), theCaloHitContainersEE->begin(), theCaloHitContainersEE->end());
-    for (unsigned int i = 0; i < caloHitsEE.size(); ++i) 
+    for (unsigned int i = 0; i < caloHitsEE.size(); ++i)
     {
       unsigned int id_ = caloHitsEE.at(i).id();
       HGCalDetId detid = HGCalDetId(id_);
@@ -1702,7 +1947,7 @@ void HGCalAnalysis::analyze(const edm::Event &iEvent, const edm::EventSetup &iSe
       simHit_z_.push_back(pos.z());
     }
   }
-  if(theCaloHitContainersHEfront.isValid())  
+  if(theCaloHitContainersHEfront.isValid())
   {
     std::vector<PCaloHit> caloHitsHEfront;
     caloHitsHEfront.insert(caloHitsHEfront.end(), theCaloHitContainersHEfront->begin(), theCaloHitContainersHEfront->end());
@@ -1716,7 +1961,7 @@ void HGCalAnalysis::analyze(const edm::Event &iEvent, const edm::EventSetup &iSe
       simHit_x_.push_back(pos.x());
       simHit_y_.push_back(pos.y());
       simHit_z_.push_back(pos.z());
-    } 
+    }
   }
   if(theCaloHitContainersHEback.isValid())
   {
@@ -1733,7 +1978,7 @@ void HGCalAnalysis::analyze(const edm::Event &iEvent, const edm::EventSetup &iSe
       simHit_y_.push_back(pos.y());
       simHit_z_.push_back(pos.z());
     }
-  }  
+  }
 
 
   // loop over simClusters
@@ -1774,11 +2019,11 @@ void HGCalAnalysis::analyze(const edm::Event &iEvent, const edm::EventSetup &iSe
         cells_v.push_back(std::numeric_limits<unsigned int>::max());
       }
     }
-    /*const math::XYZTLorentzVectorF impactPoint_ = math::XYZTLorentzVectorF(0, 0, 0, 0);*/
+    //const math::XYZTLorentzVectorF impactPoint_ = math::XYZTLorentzVectorF(0, 0, 0, 0);*/
     //const math::XYZTLorentzVectorF vtx(0, 0, 0, 0);
     //GlobalPoint gpoint(0, 0, 0);
     //std::cout << "it_simClus->impactPoint() = " << it_simClus->impactPoint().eta() << std::endl;
-    /*std::cout << "impactPoint_.x() = " << impactPoint_.x() << std::endl;*/
+    //std::cout << "impactPoint_.x() = " << impactPoint_.x() << std::endl;*/
     //std::cout << "it_simClus->impactMomentum().pt() = " << it_simClus->impactMomentum().pt() << std::endl;
     /*
     simcluster_pt_impactMomentumPt_.push_back(it_simClus->impactMomentum().Pt());
@@ -1883,10 +2128,10 @@ void HGCalAnalysis::analyze(const edm::Event &iEvent, const edm::EventSetup &iSe
       }
       pfclusterFromMultiCl_rechits_.push_back(rechits_indices);
     }  // end loop over pfClusters From MultiClusters
-  
+
   std::cout<<"okay till here============================================================>4"<<std::endl;
     // Loop over Ecal Driven Gsf Electrons From MultiClusters
-    
+
   if (storeElectrons_) {
       for (auto const &ele : electrons) {
         std::vector<uint32_t> pfclustersIndex;
@@ -1999,7 +2244,7 @@ void HGCalAnalysis::analyze(const edm::Event &iEvent, const edm::EventSetup &iSe
   // prepare for RK propagation
   defaultRKPropagator::Product prod(aField_, alongMomentum, 5.e-5);
   auto &RKProp = prod.propagator;
-  
+
   for (std::vector<reco::Track>::const_iterator it_track = tracks.begin(); it_track != tracks.end();
        ++it_track) {
     if (!it_track->quality(reco::Track::highPurity)) continue;
@@ -2314,14 +2559,14 @@ void HGCalAnalysis::fillRecHitHF(const DetId &detid, const float &fraction, cons
   cell  = std::pair<int, int>(std::numeric_limits<unsigned int>::max(), std::numeric_limits<unsigned int>::max());
 
   const double cellThickness = std::numeric_limits<std::float_t>::max();
-  
+
   const bool isHalfCell = recHitTools_.isHalfCell(detid);
 
   const double eta = recHitTools_.getEta(position);
   const double phi = recHitTools_.getPhi(position);
   const double pt = recHitTools_.getPt(position, hit->energy());
   const double radius = sqrt(position.x()*position.x() + position.y()*position.y());
-  
+
   // fill the vectors
   rechit_eta_.push_back(eta);
   rechit_phi_.push_back(phi);
