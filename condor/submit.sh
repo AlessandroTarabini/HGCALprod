@@ -87,17 +87,28 @@ TXT="${STOREDIR}/subInfo.txt"
 SUB="${STOREDIR}/condor.sub"
 LOGS="${STOREDIR}/logs"
 
+function yes_or_no {
+    while true; do
+        read -p "$* [y/n]: " yn
+        case $yn in
+            [Yy]*) return 0  ;;  
+            [Nn]*) echo "Exit."; exit 1 ;;
+        esac
+    done
+}
+
 if [ -d ${STOREDIR} ]; then
-    echo "Folder ${STOREDIR} exists"
-    echo "Previous generation might be ongoing, please check"
-    echo "To start a new generation, remove the ${STOREDIR} folder: 'rm -r ${STOREDIR}/'"
-    echo "You might also want to remove/update the folder storing the ntuples: '/data_CMS/cms/${USER}/${FOLDER}/'."
-    exit 1
-else
-    mkdir -p "${STOREDIR}"
-    mkdir ${LOGS}
-    touch ${TXT}
+    echo "Folders ${STOREDIR}/ (and very likely /data_CMS/cms/${USER}/${FOLDER}/) exist."
+    echo "Note that the previous sample generation with the same tag might be ongoing, please check."
+    DELCMD1="rm -r ${STOREDIR}/"
+    DELCMD2="rm -r /data_CMS/cms/${USER}/${FOLDER}/"
+    yes_or_no "Do you want to remove the former with: '${DELCMD1}'?" && ${DELCMD1}
+    yes_or_no "Do you want to remove the latter with: '${DELCMD2}'?" && ${DELCMD2}
 fi
+
+mkdir -p "${STOREDIR}"
+mkdir ${LOGS}
+touch ${TXT}
 
 if [ ${PARTICLE} == ${PARTICLES[0]} ]; then
 	outstr="Particles: electrons"
@@ -109,7 +120,7 @@ elif [ ${PARTICLE} == ${PARTICLES[1]} ]; then
 elif [ ${PARTICLE} == ${PARTICLES[2]} ]; then
 	outstr="Particles: pions"
 	CMSSW_COMMAND="CloseByParticle_Photon_ERZRanges_cfi_GEN_SIM.py"
-  PID=211
+	PID=211
 else
   echo "ERROR: Unknwon Particle! Pick one of the following: ${PARTICLES[@]}"
   exit
@@ -124,6 +135,9 @@ if ! [ ${FOLDER} ]; then
   exit
 else
   echo "Folder:" ${FOLDER} >> ${TXT}
+  STORAGE=/data_CMS/cms/${USER}/${FOLDER}
+  mkdir -p ${STORAGE}
+  LOCAL=/home/llr/cms/"${USER}"/CMSSW_12_6_0_pre4/src/HGCALprod
 fi
 
 if ! [ ${NSAMPLES} ]; then
@@ -134,6 +148,8 @@ else
 fi
 
 echo "Number of events per sample:" ${NEVENTS} >> ${TXT}
+
+cp ${LOCAL}/${CMSSW_COMMAND} ${STORAGE} # create copy of input file to allow multiple consecutive job submissions
 
 if [[ ${PU} -eq 1 ]]; then
   echo "Pile-Up included" >> ${TXT}

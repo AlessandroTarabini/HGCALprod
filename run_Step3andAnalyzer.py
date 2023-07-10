@@ -161,8 +161,8 @@ process.FEVTDEBUGHLToutput = cms.OutputModule("PoolOutputModule",
 
 process.ticlMultiClustersFromTrackstersTEST = cms.EDProducer("MultiClustersFromTrackstersProducer",
     LayerClusters = cms.InputTag("hgcalLayerClusters"),
-   Tracksters = cms.InputTag("ticlTrackstersMerge"), ## merged tracksters
-    # Tracksters = cms.InputTag("ticlTrackstersCLUE3DHigh"), ## raw tracksters clue3d
+    #Tracksters = cms.InputTag("ticlTrackstersMerge"), ## merged tracksters
+    Tracksters = cms.InputTag("ticlTrackstersCLUE3DHigh"), ## raw tracksters clue3d
     mightGet = cms.optional.untracked.vstring,
     verbosity = cms.untracked.uint32(3)
 )
