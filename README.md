@@ -57,11 +57,9 @@ The other arguments should be self-explanatory. They are also documented [here](
 
 ## To process only step3
 
-It is also possible to run only the last step (reco with TICL).
+It is possible to run only the last step (reco with TICL).
 
-Before starting the submission, some manual operations are needed in the ```condor/batchScript_onlystep3_template.sh``` file. The storage and local folder should be modified to fit your needs and setup.
-
-```bash condor/submit_onlystep3.sh``` is the command to run to setup the production and submit condor jobs.
-```bash condor/submit_onlystep3.sh``` needs some arguments:
-* ```-f```: name of the folder in the storage area where step2 files (in a proper ```step2``` folder) are stored
+```bash condor/submit_onlystep3.sh``` is the command to run to setup the production and submit condor jobs. It requires the following arguments:
+* ```-f```: folder name in the storage area where step2 files (in a proper ```step2/``` folder) are stored
 * ```-s```: name of the folder where step3 files will be stored
+It is assumed the storage folder is ```/data_CMS/cms/${USER}/```.
